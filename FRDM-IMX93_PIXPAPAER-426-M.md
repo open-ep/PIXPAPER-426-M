@@ -42,7 +42,7 @@ Step 1. Install necessary packages
 
         Yocto:
         Need add the line in machine conf file as following:
-        IMAGE_INSTALL_append = " libgpiod"
+        IMAGE_INSTALL_append = " libgpiod libgpiod-dev"
 
 
 Step 2. Prepare a 800x480 size picture what you want to showing, then make a image raw data based header file
@@ -51,8 +51,11 @@ Step 2. Prepare a 800x480 size picture what you want to showing, then make a ima
         $ sudo apt install python3-opencv
         $ wget https://github.com/open-EPD/user-space-examples/raw/refs/heads/master/4.26/mono/spi/png2bit_426.py
 
-        Then, rename your PNG file as test.png, and excute the python script
-        $ python3 png2bit_426.py <png file name>
+        Then, rename your PNG file as test.png, and excute the python script...
+        to generate a mono based image data:
+        $ python3 png2bit_426.py <png file name> --mode mono
+        to generate a gray-scale based image data:
+        $ python3 png2bit_426.py <png file name> --mode gray
 
         It will generate a output file: image_output.h, the copy the same folder witth pixpaper-426-m-test-frdm-imx93.c.
         Note that this step can running on host PC side or target board, but png_HEX.h must be put into the folder with c file together before 
@@ -67,7 +70,10 @@ Step 3. Please download the utility source code in the rootfs of FRDM-IMX93 SBC,
         PIXPAPER-426-M:
         # wget https://github.com/open-EPD/user-space-examples/raw/refs/heads/master/4.26/mono/spi/pixpaper-426-m-test-frdm-imx93.c
         # gcc -o epd_test pixpaper-426-m-test-frdm-imx93.c -lgpiod
-        # ./epd_test
+        if your picture is mono based, issue this command:
+        # ./epd_test mono
+        if your picture is gray-scale based, issue this command:
+        # ./epd_test gray
 
         Note that if your wired connection is different with chapter 1 "Hardware Preparison", especially DC# PIN, RST# PIN, and BUSY PIN, also can issue command 'gpioinfo' to check the gpip pin detail. 
         Please modify the specific macros definition of pixpaper-426-m-test-frdm-imx93.c:
