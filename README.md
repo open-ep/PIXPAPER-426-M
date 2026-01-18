@@ -155,16 +155,6 @@ User-space drivers provide direct application control without kernel modificatio
 **Status:** ✅ Ready
 
 </td>
-<td align="center" width="25%">
-
-<a href="https://www.nordicsemi.com/" target="_blank">
-<img src="https://github.com/user-attachments/assets/f0ef4395-25c8-4281-8b71-2d9e60a7e4a8" height="80">
-</a>
-
-#### Nordic
-**Status:** ✅ Ready
-
-</td>
 </tr>
 </table>
 
@@ -173,7 +163,6 @@ User-space drivers provide direct application control without kernel modificatio
 | **Raspberry Pi** | Raspberry Pi Pico (M0+) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/RPI-PICO_PIXPAPAER-213-C.md) | ✅ |
 | **NXP** | FRDM-IMX93 (M33 Core) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/FRDM-IMX93-M33_PIXPAPAER-213-C.md) | ✅ |
 | **ST** | STM32 | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/STM32_PIXPAPAER-213-C.md) | ✅ |
-| **Nordic** | nRF | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/NRF_PIXPAPAER-213-C.md) | ✅ |
 
 ---
 
@@ -210,24 +199,14 @@ Kernel-space reliability with proper error handling
 
 ### 📋 Platform Support Status
 
-| Platform | Architecture | DRM Driver Status | Mainline Kernel |
-|:---------|:------------|:-----------------|:----------------|
-| **i.MX93** | ARM64 | ✅ Ready | 📝 Planned |
+| Platform | Board | Architecture | DRM Driver Status | Kernel type |
+|:---------|:------------|:------------|:-----------------|:----------------|
+| **IMX95** | LEC-IMX95 | ARM64 | 📝 Planned | Vendor Kernel 6.12↑ |
+| **IMX93** | PANZER-LITE93 | ARM64 | ✅ Ready,[📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/linux-kernel-drm/DRM-FRDM-IMX93_PIXPAPAER-426-M.md) | Vendor Kernel 6.12↑ |
+| **RK3588** | CUBE-RK3588 | ARM64 | 📝 Planned | TBD |
 
 > **Note:** DRM drivers are currently under active development. Contact us for early access programs.
 
-### 🔗 Integration Examples
-
-```bash
-# Check DRM device
-ls -l /dev/dri/
-
-# Display information
-modetest -M pixpaper
-
-# Framebuffer access
-cat /dev/fb0 > /dev/null
-```
 
 ---
 
