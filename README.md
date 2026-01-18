@@ -223,27 +223,21 @@ Specialized implementations for unique requirements and cutting-edge application
 <td width="50%">
 
 #### 🤖 Computer Vision
-- Real-time image processing
-- Low-power display output
-- Edge AI integration
+- [Local/Remote Real-Time Text Output System]()
 
 </td>
 <td width="50%">
 
-#### 📡 IoT Applications
-- Battery-powered displays
-- Remote monitoring systems
-- Smart home dashboards
+#### 📡 Medical Applications
+- Monitor displays
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-#### 🎓 Educational Projects
-- Embedded systems learning
-- Display technology research
-- SPI protocol education
+#### 🎓 AI Projects
+- Speech To Text
 
 </td>
 <td width="50%">
