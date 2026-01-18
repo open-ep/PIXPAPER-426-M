@@ -15,73 +15,16 @@ Firstly, connecting the PIXPAPER-426-M's connector to the programming cable we'v
 
 Then, connect to the FRDM-IMX93 specific PINs of 40-PIN header as follows:
 
-<img src="https://github.com/user-attachments/assets/af0d0f76-5212-4ceb-ab12-6904166d30d0" width="600"> <br>
-<img src="https://github.com/user-attachments/assets/deae640f-062d-47e9-8889-c7c233c8f22b" width="400">
-
-
+<img src="https://github.com/user-attachments/assets/a26cf67e-9e79-4f71-a7aa-e6b0914e2319" width="600"> <br>
+<img src="https://github.com/user-attachments/assets/313f981a-8fe0-4196-a6a6-c9624f8eecf3" width="600">
 
 
 ## Driver Installation instructions
 
 |Kernel|Tested|
 |---|---|
-| 6.6 |&#10004;|
 | 6.12 |&#10004;|
 
-Because there has a SPI interface on Linux already, so no need any tweaking in kernel space, just need to checking the device node is exist or not <br>
-
-    ls /dev/spidev0.0
- 
-
-## User-Space Utility instructions (Linux OS)
-
-Step 1. Install necessary packages
-
-        Ubuntu/Debian:
-        $ sudo apt install gpiod libgpiod-dev
-
-        Yocto:
-        Need add the line in machine conf file as following:
-        IMAGE_INSTALL_append = " libgpiod libgpiod-dev"
-
-
-Step 2. Prepare a 800x480 size picture what you want to showing, then make a image raw data based header file
-
-        Download the PNG to RAW converter base on python3, remember to install opencv package first
-        $ sudo apt install python3-opencv
-        $ wget https://github.com/open-EPD/user-space-examples/raw/refs/heads/master/4.26/mono/spi/png2bit_426.py
-
-        Then, rename your PNG file as test.png, and excute the python script...
-        to generate a mono based image data:
-        $ python3 png2bit_426.py <png file name> --mode mono
-        to generate a gray-scale based image data:
-        $ python3 png2bit_426.py <png file name> --mode gray
-
-        It will generate a output file: image_output.h, the copy the same folder witth pixpaper-426-m-test-frdm-imx93.c.
-        Note that this step can running on host PC side or target board, but png_HEX.h must be put into the folder with c file together before 
-        compiling.
-
-        Download a sample header file:
-        wget https://github.com/open-EPD/user-space-examples/raw/refs/heads/master/4.26/mono/spi/image_output.h
-
-
-Step 3. Please download the utility source code in the rootfs of FRDM-IMX93 SBC, then compile it and execute the compiled executable file.
-
-        PIXPAPER-426-M:
-        # wget https://github.com/open-EPD/user-space-examples/raw/refs/heads/master/4.26/mono/spi/pixpaper-426-m-test-frdm-imx93.c
-        # gcc -o epd_test pixpaper-426-m-test-frdm-imx93.c -lgpiod
-        if your picture is mono based, issue this command:
-        # ./epd_test mono
-        if your picture is gray-scale based, issue this command:
-        # ./epd_test gray
-
-        Note that if your wired connection is different with chapter 1 "Hardware Preparison", especially DC# PIN, RST# PIN, and BUSY PIN, also can issue command 'gpioinfo' to check the gpip pin detail. 
-        Please modify the specific macros definition of pixpaper-426-m-test-frdm-imx93.c:
-
-        #define EPD_GPIO_CHIP "gpiochip0"
-        #define EPD_DC_PIN 0
-        #define EPD_RST_PIN 5
-        #define EPD_BUSY_PIN 26
 
 
 Expection results: <br>
