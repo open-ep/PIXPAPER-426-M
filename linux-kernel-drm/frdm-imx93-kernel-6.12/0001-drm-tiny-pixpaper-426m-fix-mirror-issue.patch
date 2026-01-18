@@ -1,0 +1,36 @@
+From 914d626968075f61a5a154651cb9e21372c725de Mon Sep 17 00:00:00 2001
+From: Wig Cheng <wigcheng@ieiworld.com>
+Date: Sun, 23 Nov 2025 00:17:39 +0800
+Subject: [PATCH] drm: tiny: pixpaper-426m: fix mirror issue
+
+Current driver has a left-right mirroring issue, add a new variable to
+fix adjusts the x-axis position calculation to ensure the framebuffer is
+rendered in the correct orientation.
+---
+ drivers/gpu/drm/tiny/pixpaper-426m.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tiny/pixpaper-426m.c b/drivers/gpu/drm/tiny/pixpaper-426m.c
+index 446234ed9dee..3c331c6eeec1 100644
+--- a/drivers/gpu/drm/tiny/pixpaper-426m.c
++++ b/drivers/gpu/drm/tiny/pixpaper-426m.c
+@@ -224,6 +224,7 @@ static void pixpaper_fb_to_mono(void *src, void *dst, int height,
+ 		uint8_t *dst_row = dst_pixels + y * dst_pitch;
+ 
+ 		for (int x = 0; x < width; x++) {
++			int src_x = width - 1 - x;
+ 			uint8_t r, g, b;
+ 			int bit_pos = x % 8;
+ 			int byte_pos = x / 8;
+@@ -231,7 +232,7 @@ static void pixpaper_fb_to_mono(void *src, void *dst, int height,
+ 
+ 			if (format == DRM_FORMAT_XRGB8888 || format == DRM_FORMAT_ARGB8888) {
+ 				uint32_t *src_pixels = src;
+-				uint32_t pixel = src_pixels[y * width + x];
++				uint32_t pixel = src_pixels[y * width + src_x];
+ 				r = (pixel >> 16) & 0xFF;
+ 				g = (pixel >> 8) & 0xFF;
+ 				b = pixel & 0xFF;
+-- 
+2.43.0
+
