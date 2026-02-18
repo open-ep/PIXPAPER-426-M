@@ -86,7 +86,7 @@ Step 3. Please download the utility source code in the rootfs of FRDM-IMX93 SBC,
 
 Expection results: <br>
 
-https://github.com/user-attachments/assets/a5192a41-dba7-4fbe-bb49-bd246300b544
+https://github.com/user-attachments/assets/d21c83b3-4c74-4a72-a7ff-33159d94f2e8
 
 
 
