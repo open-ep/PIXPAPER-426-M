@@ -80,7 +80,7 @@ Step 3. Please download the utility source code in the rootfs of D3-G SBC, then 
 
 Expection results: <br>
 
-https://github.com/user-attachments/assets/1bdce9d4-aec5-42c6-b3d2-4dbf79f6d9b8
+https://github.com/user-attachments/assets/363a832f-cdcd-42d9-8cab-356c27faebf7
 
 
 
