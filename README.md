@@ -118,7 +118,7 @@ User-space drivers provide direct application control without kernel modificatio
 | Manufacturer | Board / SoC | Porting Guide | Status |
 |:------------|:-----------|:--------------|:------:|
 | **NXP** | FRDM-IMX93 (IMX93) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/FRDM-IMX93_PIXPAPAER-426-M.md) | ✅ |
-| **Telechips** | TOPST D3-G (Dolphin 3M) | [📄 Guide](https://github.com/MayQueenTechCommunity/PIXPAPER-426-M/blob/main/D3-G_PIXPAPAER-426-M.md) | ✅ |
+| **Telechips** | TOPST D3-G (Dolphin 3M) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/D3-G_PIXPAPAER-426-M.md) | ✅ |
 
 -----------------
 ### 🔧 MCU Platforms (ARM32)
