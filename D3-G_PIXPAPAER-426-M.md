@@ -8,15 +8,12 @@
 
 Firstly, connecting the PIXPAPER-426-M's connector to the programming cable we've provided. Connect the other end of the cable to the corresponding pins, matching the colors as defined.
 
-![image](https://github.com/user-attachments/assets/af657fcd-c5c5-4a54-b7a7-40c95f902b9c)
-![image](https://github.com/user-attachments/assets/6ae059a1-9711-4d93-b800-46bffb24d128)
-
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/278a84f1-97a0-4ab5-ac1d-c94a1133bda3" />
 
 
 Then, connect to the D3-G specific PINs of 40-PIN header as follows:
 
-<img src="https://github.com/user-attachments/assets/d401dc80-7faa-4536-b914-a8caaaaeff19" width="800"> <br>
-<img src="https://github.com/user-attachments/assets/cfbe02b8-f010-4449-88ae-38e6ea221e81" width="400"> <br>
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/e91b0785-4cf3-4493-a628-4615d0fd2921" />
 
 
 
