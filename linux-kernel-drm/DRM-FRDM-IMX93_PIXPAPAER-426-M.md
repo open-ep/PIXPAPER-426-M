@@ -8,8 +8,7 @@ Because [FRDM-IMX93 - Single Board Computer](https://youtu.be/ZpD9j6_nsNI?si=w4P
 
 Firstly, connecting the PIXPAPER-426-M's connector to the programming cable we've provided. Connect the other end of the cable to the corresponding pins, matching the colors as defined.
 
-![image](https://github.com/user-attachments/assets/af657fcd-c5c5-4a54-b7a7-40c95f902b9c)
-![image](https://github.com/user-attachments/assets/6ae059a1-9711-4d93-b800-46bffb24d128)
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/278a84f1-97a0-4ab5-ac1d-c94a1133bda3" />
 
 
 
@@ -241,10 +240,9 @@ modetest -M pixpaper
 modetest -M pixpaper -s <connector_id>:800x480
 ```
 
-Expection results: <br>
+Expection results(Running Yocto): <br>
 
-https://github.com/user-attachments/assets/a5192a41-dba7-4fbe-bb49-bd246300b544
-
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/b8106355-21f7-4af8-b416-e0ad78876bd1" />
 
 
 
