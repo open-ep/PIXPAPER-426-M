@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open-EP Text Sender</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #00d4aa;
+    --accent2: #e94560;
+    --text: #e0e0e0;
+    --text-dim: #8892a4;
+    --border: #2a3a5c;
+    --epaper-bg: #e8e4d9;
+    --epaper-text: #1a1a1a;
+    --green-glow: rgba(0, 212, 170, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    grid-template-rows: auto 1fr auto;
+    gap: 20px;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .header h1 span {
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* Left panel - Editor */
+  .editor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .text-area-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  textarea {
+    flex: 1;
+    min-height: 260px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 16px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--green-glow);
+  }
+
+  textarea::placeholder {
+    color: var(--text-dim);
+    opacity: 0.6;
+  }
+
+  /* Parameters grid */
+  .params {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .param-group label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .param-group input, .param-group select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .param-group input:focus, .param-group select:focus {
+    border-color: var(--accent);
+  }
+
+  /* Serial config */
+  .serial-config {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Command output */
+  .cmd-output {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #7ee787;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 160px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .cmd-output .prompt {
+    color: var(--accent);
+    user-select: none;
+  }
+
+  /* Buttons */
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0a;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover {
+    background: #00e8bb;
+    box-shadow: 0 0 20px var(--green-glow);
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+  }
+  .btn-secondary:hover {
+    background: var(--surface2);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--accent2);
+    border-color: var(--accent2);
+  }
+  .btn-danger:hover {
+    background: rgba(233, 69, 96, 0.1);
+  }
+
+  .btn-connect {
+    background: var(--surface2);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn-connect:hover {
+    background: rgba(0, 212, 170, 0.1);
+  }
+  .btn-connect.connected {
+    background: rgba(0, 212, 170, 0.15);
+    color: var(--accent);
+  }
+
+  /* Right panel - Preview */
+  .preview-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .epaper-frame {
+    background: #3a3a3a;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .epaper-screen {
+    background: var(--epaper-bg);
+    border-radius: 4px;
+    width: 100%;
+    aspect-ratio: 800 / 480;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .epaper-screen .preview-text {
+    color: var(--epaper-text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: 100%;
+  }
+
+  .epaper-screen .clock {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #888;
+    background: rgba(200,200,200,0.3);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .screen-info {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    padding: 0 2px;
+  }
+
+  /* Presets */
+  .presets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .preset-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  /* Log */
+  .log-panel {
+    grid-column: 1 / -1;
+  }
+
+  .log-output {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .log-output .log-time { color: #586069; }
+  .log-output .log-ok { color: #7ee787; }
+  .log-output .log-err { color: var(--accent2); }
+  .log-output .log-info { color: #79c0ff; }
+
+  /* Status indicator */
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    display: inline-block;
+  }
+  .status-dot.ok { background: var(--accent); animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Web Serial not supported banner */
+  .no-serial-banner {
+    grid-column: 1 / -1;
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid var(--accent2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--accent2);
+    display: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+    .preview-panel { order: -1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Open-EP <span>Text Sender</span></h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="badge">PixPaper EPD</span>
+      <span class="badge" id="serialStatus"><span class="status-dot" id="statusDot"></span>&nbsp;Disconnected</span>
+    </div>
+  </div>
+
+  <div class="no-serial-banner" id="noSerialBanner">
+    ⚠ Your browser does not support the Web Serial API. Please use Chrome / Edge (desktop) to open this tool.<br>
+    Alternatively, use the "Copy Command" button below to copy the command and paste it into your serial terminal manually.
+  </div>
+
+  <!-- Left: Editor -->
+  <div class="editor-panel">
+    <div class="text-area-wrap">
+      <div class="panel-label">Display Text</div>
+      <textarea id="textInput" placeholder="Enter text to display on the e-paper...&#10;&#10;Supports CJK multilingual text&#10;Press Enter for new lines"></textarea>
+    </div>
+
+    <div class="panel-label">text_renderer Parameters</div>
+    <div class="params">
+      <div class="param-group">
+        <label>Width (-w)</label>
+        <input type="number" id="paramW" value="800">
+      </div>
+      <div class="param-group">
+        <label>Height (-h)</label>
+        <input type="number" id="paramH" value="480">
+      </div>
+      <div class="param-group">
+        <label>Font Size (-s)</label>
+        <input type="number" id="paramS" value="30">
+      </div>
+      <div class="param-group">
+        <label>Format</label>
+        <select id="paramFormat">
+          <option value="rgba" selected>rgba</option>
+          <option value="rgb">rgb</option>
+          <option value="gray">gray</option>
+        </select>
+      </div>
+      <div class="param-group">
+        <label>Font (-f)</label>
+        <input type="text" id="paramFont" value="./NotoSansCJK-Bold.ttc">
+      </div>
+      <div class="param-group">
+        <label>Output (-o)</label>
+        <input type="text" id="paramOutput" value="/dev/fb0">
+      </div>
+    </div>
+
+    <div class="panel-label">Serial Connection</div>
+    <div class="serial-config">
+      <div class="param-group">
+        <label>Baud Rate</label>
+        <select id="baudRate">
+          <option value="9600">9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200" selected>115200</option>
+          <option value="230400">230400</option>
+          <option value="460800">460800</option>
+          <option value="921600">921600</option>
+        </select>
+      </div>
+      <div class="param-group">
+        <label>Line Ending</label>
+        <select id="lineEnding">
+          <option value="\n" selected>LF (\n)</option>
+          <option value="\r\n">CRLF (\r\n)</option>
+          <option value="\r">CR (\r)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel-label">Generated Command</div>
+    <div class="cmd-output" id="cmdOutput"><span class="prompt">$ </span><span id="cmdText">./text_renderer -t "" -f ./NotoSansCJK-Bold.ttc -w 800 -h 480 -s 30 --format rgba -o /dev/fb0</span></div>
+
+    <div class="actions">
+      <button class="btn-connect" id="btnConnect" onclick="toggleSerial()">
+        ⎈ Connect Serial
+      </button>
+      <button class="btn-primary" id="btnSend" onclick="sendCommand()">
+        ▶ Send to Board
+      </button>
+      <button class="btn-secondary" onclick="copyCommand()">
+        ⧉ Copy Command
+      </button>
+      <button class="btn-danger" onclick="clearAll()">
+        ✕ Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Right: Preview -->
+  <div class="preview-panel">
+    <div>
+      <div class="panel-label">E-Paper Preview</div>
+      <div class="epaper-frame">
+        <div class="epaper-screen" id="epaperScreen">
+          <div class="preview-text" id="previewText"></div>
+          <div class="clock" id="clock">--:--</div>
+        </div>
+        <div class="screen-info">
+          <span id="screenRes">800 × 480</span>
+          <span>font-size: <span id="screenFs">30</span>px</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-label">Quick Examples</div>
+      <div class="presets">
+        <button class="preset-btn" onclick="loadPreset(0)">📋 iMX93 FRDM — Multilingual Demo</button>
+        <button class="preset-btn" onclick="loadPreset(1)">📋 Kernel Evolution (Japanese)</button>
+        <button class="preset-btn" onclick="loadPreset(2)">📋 Kernel Development (Korean)</button>
+        <button class="preset-btn" onclick="loadPreset(3)">📋 Open-EP Intro (Chinese)</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-label">Shortcuts</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);line-height:2;">
+        <kbd style="background:var(--surface);padding:2px 6px;border-radius:3px;border:1px solid var(--border);">Ctrl+Enter</kbd> Send command<br>
+        <kbd style="background:var(--surface);padding:2px 6px;border-radius:3px;border:1px solid var(--border);">Ctrl+Shift+C</kbd> Copy command
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Log -->
+  <div class="log-panel">
+    <div class="panel-label">Communication Log</div>
+    <div class="log-output" id="logOutput">
+      <span class="log-time">[--:--:--]</span> <span class="log-info">Open-EP Text Sender ready, waiting for connection...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === State ===
+  let port = null;
+  let writer = null;
+  let reader = null;
+
+  const presets = [
+    {
+      text: `iMX93 FRDM EVB\n\n\nLinuxカーネル専門家\n리눅스 커널 전문가\n\n\nby OpenEP\n2025/12/31`,
+      w: 800, h: 480, s: 30
+    },
+    {
+      text: `カーネル機能の変遷\nBSD系UNIXが訴訟に巻き込まれて開発が停滞していたり、格好良い設計のHurd(マイクロカーネル型のPosix OS)がいつまで経っても、いつまで待っても完成しないでいる間に、Linuxカーネルは開発者を集めてどんどん進化を続けました。インターネットが丁度普及し始めたころというタイミングも開発を後押ししたように思います。`,
+      w: 800, h: 480, s: 30
+    },
+    {
+      text: `어떻게 리눅스 커널 개발을 하는가\n이 문서는 커널 개발에 있어 가장 중요한 문서이다. 이 문서는 리눅스 커널 개발자가 되는 법과 리눅스 커널 개발 커뮤니티와 일하는 법을 담고있다. 커널 프로그래밍의 기술적인 측면과 관련된 내용들은 포함하지 않으려고 하였지만 올바른 길로 여러분을 안내하는 데는 도움이 될 것이다.\n이 문서에서 오래된 것을 발견하면 문서의 아래쪽에 나열된 메인테이너에게 패치를 보내달라.`,
+      w: 800, h: 480, s: 30
+    },
+    {
+      text: `Open-EP 開放電子紙計畫\n\nOpen-EP 是一個開源電子紙顯示器專案，\n使用 Linux 主線 DRM Tiny Driver\n搭配 SPI 介面的 PixPaper 控制器。\n\n支援平台：\n- NXP i.MX93 FRDM\n- Renesas RZ/V2H (Kakip)\n\nhttps://open-ep.org`,
+      w: 800, h: 480, s: 30
+    }
+  ];
+
+  // === Build command ===
+  function buildCommand() {
+    const text = document.getElementById('textInput').value;
+    const w = document.getElementById('paramW').value;
+    const h = document.getElementById('paramH').value;
+    const s = document.getElementById('paramS').value;
+    const fmt = document.getElementById('paramFormat').value;
+    const font = document.getElementById('paramFont').value;
+    const output = document.getElementById('paramOutput').value;
+
+    // Escape for shell: replace actual newlines with \n literal, escape double quotes and backslashes
+    const escaped = text
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n');
+
+    return `./text_renderer -t "${escaped}" -f ${font} -w ${w} -h ${h} -s ${s} --format ${fmt} -o ${output}`;
+  }
+
+  function updatePreview() {
+    const text = document.getElementById('textInput').value;
+    const w = document.getElementById('paramW').value;
+    const h = document.getElementById('paramH').value;
+    const s = document.getElementById('paramS').value;
+
+    document.getElementById('previewText').textContent = text;
+    document.getElementById('cmdText').textContent = buildCommand();
+    document.getElementById('screenRes').textContent = `${w} × ${h}`;
+    document.getElementById('screenFs').textContent = s;
+
+    // Scale preview font
+    const screen = document.getElementById('epaperScreen');
+    const scaleRatio = screen.clientWidth / parseInt(w);
+    document.getElementById('previewText').style.fontSize = (parseInt(s) * scaleRatio) + 'px';
+  }
+
+  // === Presets ===
+  function loadPreset(idx) {
+    const p = presets[idx];
+    document.getElementById('textInput').value = p.text;
+    document.getElementById('paramW').value = p.w;
+    document.getElementById('paramH').value = p.h;
+    document.getElementById('paramS').value = p.s;
+    updatePreview();
+    addLog('info', `Loaded example #${idx + 1}`);
+  }
+
+  // === Copy ===
+  function copyCommand() {
+    const cmd = buildCommand();
+    navigator.clipboard.writeText(cmd).then(() => {
+      addLog('ok', 'Command copied to clipboard');
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = cmd;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      addLog('ok', 'Command copied to clipboard (fallback)');
+    });
+  }
+
+  // === Clear ===
+  function clearAll() {
+    document.getElementById('textInput').value = '';
+    updatePreview();
+    addLog('info', 'Text content cleared');
+  }
+
+  // === Web Serial ===
+  function checkSerial() {
+    if (!('serial' in navigator)) {
+      document.getElementById('noSerialBanner').style.display = 'block';
+      return false;
+    }
+    return true;
+  }
+
+  async function toggleSerial() {
+    if (port) {
+      await disconnectSerial();
+    } else {
+      await connectSerial();
+    }
+  }
+
+  async function connectSerial() {
+    if (!checkSerial()) return;
+    try {
+      port = await navigator.serial.requestPort();
+      const baud = parseInt(document.getElementById('baudRate').value);
+      await port.open({ baudRate: baud });
+
+      writer = port.writable.getWriter();
+
+      document.getElementById('btnConnect').textContent = '⏻ Disconnect';
+      document.getElementById('btnConnect').classList.add('connected');
+      document.getElementById('statusDot').classList.add('ok');
+      document.getElementById('serialStatus').querySelector('span:last-child') || 
+        (document.getElementById('serialStatus').innerHTML = 
+          '<span class="status-dot ok" id="statusDot"></span>&nbsp;Connected');
+
+      addLog('ok', `Serial connected (baud: ${baud})`);
+
+      // Read loop (background)
+      readLoop();
+    } catch (e) {
+      addLog('err', `Connection failed: ${e.message}`);
+      port = null;
+    }
+  }
+
+  async function readLoop() {
+    if (!port || !port.readable) return;
+    const textDecoder = new TextDecoderStream();
+    const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+    reader = textDecoder.readable.getReader();
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          addLog('info', `← ${value.trim()}`);
+        }
+      }
+    } catch (e) {
+      // Port closed or error
+    }
+  }
+
+  async function disconnectSerial() {
+    try {
+      if (reader) { await reader.cancel(); reader = null; }
+      if (writer) { await writer.close(); writer = null; }
+      if (port) { await port.close(); port = null; }
+    } catch(e) {}
+
+    document.getElementById('btnConnect').textContent = '⎈ Connect Serial';
+    document.getElementById('btnConnect').classList.remove('connected');
+    document.getElementById('statusDot').classList.remove('ok');
+    document.getElementById('serialStatus').innerHTML = 
+      '<span class="status-dot" id="statusDot"></span>&nbsp;Disconnected';
+
+    addLog('info', 'Serial disconnected');
+  }
+
+  async function sendCommand() {
+    const cmd = buildCommand();
+    const leRaw = document.getElementById('lineEnding').value;
+    // Convert escaped representation to actual control characters
+    const le = leRaw.replace(/\\r/g, '\r').replace(/\\n/g, '\n');
+    const fullCmd = cmd + le;
+
+    if (writer) {
+      try {
+        const encoder = new TextEncoder();
+        await writer.write(encoder.encode(fullCmd));
+        addLog('ok', `→ Command sent (${cmd.length} chars)`);
+      } catch(e) {
+        addLog('err', `Send failed: ${e.message}`);
+      }
+    } else {
+      addLog('err', 'Serial not connected. Please click Connect or copy the command manually.');
+    }
+  }
+
+  // === Logging ===
+  function addLog(type, msg) {
+    const el = document.getElementById('logOutput');
+    const now = new Date();
+    const ts = [now.getHours(), now.getMinutes(), now.getSeconds()]
+      .map(n => String(n).padStart(2, '0')).join(':');
+    const cls = type === 'ok' ? 'log-ok' : type === 'err' ? 'log-err' : 'log-info';
+    el.innerHTML += `\n<span class="log-time">[${ts}]</span> <span class="${cls}">${msg}</span>`;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // === Clock ===
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      [now.getHours(), now.getMinutes()].map(n => String(n).padStart(2, '0')).join(':');
+  }
+
+  // === Keyboard shortcuts ===
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      sendCommand();
+    }
+    if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+      e.preventDefault();
+      copyCommand();
+    }
+  });
+
+  // === Init ===
+  document.querySelectorAll('#textInput, #paramW, #paramH, #paramS, #paramFormat, #paramFont, #paramOutput')
+    .forEach(el => el.addEventListener('input', updatePreview));
+
+  // Resize observer for preview scaling
+  new ResizeObserver(() => updatePreview()).observe(document.getElementById('epaperScreen'));
+
+  checkSerial();
+  updateClock();
+  setInterval(updateClock, 30000);
+  updatePreview();
+</script>
+
+</body>
+</html>
