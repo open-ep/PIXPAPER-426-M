@@ -9,12 +9,16 @@
 | Item | Requirement |
 |------|-------------|
 | **Browser** | Desktop **Chrome** or **Edge** (Web Serial API support). Firefox and Safari are *not* supported for direct sending. |
-| **Board** | A target board running the `text_renderer` binary (e.g. NXP i.MX93 FRDM, Renesas RZ/V2H "Kakip") connected to a PixPaper e-paper panel. |
+| **Board** | A target board with the PixPaper panel working as a framebuffer (e.g. FRDM-IMX93 with the [DRM driver](DRM-FRDM-IMX93_PIXPAPAER-426-M.md)) and the `text_renderer` binary — see below. |
 | **Connection** | A USB-to-serial (UART) link between your computer and the board. |
 | **Font file** | `NotoSansCJK-Bold.ttc` (or another font) present on the board next to `text_renderer`. |
 | **Internet** | Only needed once, so the page can load its web fonts. The tool itself runs fully in the browser. |
 
 > If your browser does not support Web Serial, the tool still works as a **command generator** — you can copy the command and paste it into your own serial terminal manually.
+
+### Get `text_renderer`
+
+The `text_renderer` source code and build steps are **coming soon**.
 
 ---
 

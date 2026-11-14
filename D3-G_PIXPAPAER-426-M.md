@@ -1,88 +1,83 @@
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-## Overview
+# PIXPAPER-426-M on TOPST D3-G — Linux
 
-## Hardware Preparison
-
-[D3-G](https://topst.ai/product/g/d3), an AI Single Board Computer, which has a 40-PIN pin header and compatible with Raspberry PI, so it has some SPI interfaces can be used.
-
-Firstly, connecting the PIXPAPER-426-M's connector to the programming cable we've provided. Connect the other end of the cable to the corresponding pins, matching the colors as defined.
-
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/278a84f1-97a0-4ab5-ac1d-c94a1133bda3" />
-
-
-Then, connect to the D3-G specific PINs of 40-PIN header as follows:
-
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/e91b0785-4cf3-4493-a628-4615d0fd2921" />
-
-
-
-
-
-## Driver Installation instructions
-
-|Kernel|Tested|
+| Item | Value |
 |---|---|
-| 5.10 |&#10004;|
+| Board | [TOPST D3-G](https://topst.ai/product/g/d3) (Telechips Dolphin 3M) |
+| Tested | kernel 5.10 |
+| Interface | `/dev/spidev0.0` + 3 GPIOs on `gpiochip4` |
+| Demo source | [pixpaper-426-m-test-topst-d3-g.c](https://github.com/open-ep/linux-user-space-examples/blob/master/4.26/mono/spi/pixpaper-426-m-test-topst-d3-g.c) |
 
-Because there has a SPI interface on Linux already, so no need any tweaking in kernel space, just need to checking the device node is exist or not <br>
+## 1. Wiring
 
-    ls /dev/spidev0.0
- 
+Power the board off before wiring. The panel is **3.3 V only** — never use a 5 V pin.
 
-## User-Space Utility instructions (Linux OS)
+<img src="images/wiring/d3g.svg" width="640" alt="TOPST D3-G wiring">
 
-Step 1. Install necessary packages
+| Panel | JH1 pin | SoC signal |
+|---|---|---|
+| 3V3 | 1 | 3.3 V |
+| GND | 9 (any GND) | GND |
+| MOSI | 19 | GPIO_C02 / SPI0 MOSI |
+| SCK | 23 | GPIO_C00 / SPI0 SCLK |
+| CS# | 24 | GPIO_C01 / SPI0 CS0 |
+| DC# | 29 | GPIO_G01 (gpiochip4 line 1) |
+| RST# | 31 | GPIO_G02 (gpiochip4 line 2) |
+| BUSY | 37 | GPIO_G06 (gpiochip4 line 6) |
 
-        Ubuntu/Debian:
-        $ sudo apt install gpiod libgpiod-dev
+<details><summary>Photo of a finished setup</summary>
 
-        Yocto:
-        Need add the line in machine conf file as following:
-        IMAGE_INSTALL_append = " libgpiod"
+<img width="640" alt="photo" src="https://github.com/user-attachments/assets/e91b0785-4cf3-4493-a628-4615d0fd2921" />
+</details>
 
+## 2. Enable SPI
 
-Step 2. Prepare a 800x480 size picture what you want to showing, then make a image raw data based header file
+Nothing to do — the stock image already provides the SPI device.
 
-        Download the PNG to RAW converter base on python3, remember to install opencv package first
-        $ sudo apt install python3-opencv
-        $ wget https://github.com/open-ep/linux-user-space-examples/raw/refs/heads/master/4.26/mono/spi/png2bit_426.py
+**Check:** `ls /dev/spidev0.0` prints `/dev/spidev0.0`.
 
-        Then, rename your PNG file as test.png, and excute the python script
-        $ python3 png2bit_426.py <png file name>
+## 3. Build and run the demo
 
-        It will generate a output file: image_output.h, the copy the same folder witth pixpaper-426-m-test-topst-d3-g.c.
-        Note that this step can running on host PC side or target board, but image_output.h must be put into the folder with c file together before 
-        compiling.
+> Needs **libgpiod 1.x** — check with `gpioinfo --version` (must say `v1.x`).
 
-        Download a sample header file:
-        wget https://github.com/open-ep/linux-user-space-examples/raw/refs/heads/master/4.26/mono/spi/image_output.h
+> Yocto image: add `IMAGE_INSTALL:append = " libgpiod libgpiod-dev libgpiod-tools packagegroup-core-buildessential"` to `conf/local.conf`, rebuild, then run the commands below on the board (skip the `apt` line).
 
+```bash
+sudo apt install -y gcc wget gpiod libgpiod-dev
+mkdir -p ~/pixpaper-426m && cd ~/pixpaper-426m
+BASE=https://raw.githubusercontent.com/open-ep/linux-user-space-examples/master/4.26/mono/spi
+wget $BASE/pixpaper-426-m-test-topst-d3-g.c $BASE/image_output.h
+gcc -o epd_test pixpaper-426-m-test-topst-d3-g.c -lgpiod
+sudo ./epd_test
+```
 
-Step 3. Please download the utility source code in the rootfs of D3-G SBC, then compile it and execute the compiled executable file.
+## 4. Expected result
 
-        PIXPAPER-426-M:
-        # wget https://github.com/open-ep/linux-user-space-examples/raw/refs/heads/master/4.26/mono/spi/pixpaper-426-m-test-topst-d3-g.c
-        # gcc -o epd_test pixpaper-426-m-test-topst-d3-g.c -lgpiod
-        # ./epd_test
-
-        Note that if your wired connection is different with chapter 1 "Hardware Preparison", especially DC# PIN, RST# PIN, and BUSY PIN, also can issue command 'gpioinfo' to check the gpip pin detail. 
-        Please modify the specific macros definition of PIXPAPER-426-M-test-topst-d3-g.c:
-
-        #define EPD_GPIO_CHIP "gpiochip4"
-        #define EPD_DC_PIN 1
-        #define EPD_RST_PIN 2
-        #define EPD_BUSY_PIN 6
-
-
-Expection results: <br>
+The panel does a full refresh (it flashes) and shows the sample picture, then redraws it every 20 s until you press **Ctrl+C**.
 
 https://github.com/user-attachments/assets/363a832f-cdcd-42d9-8cab-356c27faebf7
 
+## 5. Show your own picture
 
+```bash
+sudo apt install -y python3-opencv
+wget $BASE/png2bit_426.py
+python3 png2bit_426.py your_image.png --mode mono     # → image_output.h
+gcc -o epd_test pixpaper-426-m-test-topst-d3-g.c -lgpiod && sudo ./epd_test
+```
 
+This demo is **mono only**. `png2bit_426.py` resizes any PNG to 800 × 480 (landscape) and always writes `image_output.h` (`-o` is ignored).
 
+## Troubleshooting
 
+| Symptom | Fix |
+|---|---|
+| `/dev/spidev0.0` missing | SPI is not enabled → redo step 2 and reboot. |
+| Compile error `implicit declaration of function 'gpiod_chip_open_by_name'` | Your OS has libgpiod 2.x; this demo needs 1.x (`gpioinfo --version`). |
+| `Failed to request GPIO` / line busy | Another driver owns gpiochip4 lines 1/2/6. `gpioinfo gpiochip4` shows the user. If you rewire, edit `EPD_DC_PIN` / `EPD_RST_PIN` / `EPD_BUSY_PIN` in the `.c`. |
+| Runs, but the screen never changes | Check 3V3 and GND first, then that MOSI and SCK are not swapped. |
+| Hangs at 100 % CPU, no flashing | BUSY or RST# wire is loose. |
 
 ## Contributors
 

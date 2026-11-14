@@ -31,7 +31,7 @@
 |:-------------|:--------|
 | **Screen Size** | 4.26 inch |
 | **Resolution** | 800 x 480 pixels |
-| **Color Support** | Mono(Black, White), Gray-Scale(7-level) |
+| **Color Support** | Mono (black / white), Grayscale (4-level or 8-level) |
 | **PPI** | 219 |
 | **Interface** | SPI |
 | **Partial Update** | YES |
@@ -46,6 +46,11 @@
 3.3V | GND | MOSI | SCK | CS# | DC# | RST# | BUSY
 ```
 > **Note:** DC#, RST#, and BUSY are GPIO-controlled
+
+**Same on every board:**
+- Power the panel from **3.3 V only**. Never connect it to 5 V.
+- A full refresh flashes the screen. This is normal.
+- Each guide has a wiring diagram showing both the header pin number and the SoC signal name.
 
 ---
 
@@ -132,7 +137,7 @@ User-space drivers provide direct application control without kernel modificatio
 
 
 #### Raspberry Pi
-**Status:** ✅ Ready
+**Status:** ⏳ Coming soon
 
 </td>
 <td align="center" width="25%">
@@ -142,7 +147,7 @@ User-space drivers provide direct application control without kernel modificatio
 </a>
 
 #### NXP
-**Status:** ✅ Ready
+**Status:** ⏳ Coming soon
 
 </td>
 <td align="center" width="25%">
@@ -152,7 +157,7 @@ User-space drivers provide direct application control without kernel modificatio
 </a>
 
 #### ST
-**Status:** ✅ Ready
+**Status:** ⏳ Coming soon
 
 </td>
 </tr>
@@ -160,9 +165,9 @@ User-space drivers provide direct application control without kernel modificatio
 
 | Manufacturer | Board / Core | Porting Guide | Status |
 |:------------|:------------|:--------------|:------:|
-| **Raspberry Pi** | Raspberry Pi Pico (M0+) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/RPI-PICO_PIXPAPAER-213-C.md) | ✅ |
-| **NXP** | FRDM-IMX93 (M33 Core) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/FRDM-IMX93-M33_PIXPAPAER-213-C.md) | ✅ |
-| **ST** | STM32 | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/STM32_PIXPAPAER-213-C.md) | ✅ |
+| **Raspberry Pi** | Raspberry Pi Pico (M0+) | Coming soon | ⏳ |
+| **NXP** | FRDM-IMX93 (M33 Core) | Coming soon | ⏳ |
+| **ST** | STM32 | Coming soon | ⏳ |
 
 ---
 
@@ -202,7 +207,7 @@ Kernel-space reliability with proper error handling
 | Platform | Board | Architecture | DRM Driver Status | Kernel type |
 |:---------|:------------|:------------|:-----------------|:----------------|
 | **IMX95** | LEC-IMX95 | ARM64 | 📝 Planned | Vendor Kernel 6.12↑ |
-| **IMX93** | PANZER-LITE93 | ARM64 | ✅ Ready,[📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/linux-kernel-drm/DRM-FRDM-IMX93_PIXPAPAER-426-M.md) | Vendor Kernel 6.12↑ |
+| **IMX93** | FRDM-IMX93 | ARM64 | ✅ Ready,[📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/linux-kernel-drm/DRM-FRDM-IMX93_PIXPAPAER-426-M.md) | Vendor Kernel 6.12↑ |
 | **RK3588** | CUBE-RK3588 | ARM64 | 📝 Planned | TBD |
 
 > **Note:** DRM drivers are currently under active development. Contact us for early access programs.

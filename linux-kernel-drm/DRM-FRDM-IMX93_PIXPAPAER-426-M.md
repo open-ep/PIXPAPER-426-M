@@ -1,252 +1,130 @@
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
-## Linux Kernel DRM Driver User-Guide
+# PIXPAPER-426-M DRM driver on NXP FRDM-IMX93 — Linux kernel 6.12
 
-## Hardware Preparison
+The panel becomes a normal Linux display (`/dev/dri/cardN`, `/dev/fbN`). Any DRM/KMS or framebuffer program can draw on it.
 
-Because [FRDM-IMX93 - Single Board Computer](https://youtu.be/ZpD9j6_nsNI?si=w4PjBL8ydYqj8hmg) has a 40-PIN pin header and compatible with Raspberry PI, so it has one SPI interface can be used.
-
-Firstly, connecting the PIXPAPER-426-M's connector to the programming cable we've provided. Connect the other end of the cable to the corresponding pins, matching the colors as defined.
-
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/278a84f1-97a0-4ab5-ac1d-c94a1133bda3" />
-
-
-
-Then, connect to the FRDM-IMX93 specific PINs of 40-PIN header as follows:
-
-<img src="https://github.com/user-attachments/assets/a26cf67e-9e79-4f71-a7aa-e6b0914e2319" width="600"> <br>
-<img src="https://github.com/user-attachments/assets/313f981a-8fe0-4196-a6a6-c9624f8eecf3" width="600">
-
-
-## Driver Installation instructions
-
-|Kernel|Tested|
+| Item | Value |
 |---|---|
-| 6.12 |&#10004;|
+| Board | [NXP FRDM-IMX93](https://www.nxp.com/design/design-center/development-boards-and-designs/FRDM-IMX93) |
+| Kernel | NXP vendor kernel `lf-6.12.y`, device tree `imx93-11x11-frdm.dts` |
+| Driver | 3 patches in [`frdm-imx93-kernel-6.12/`](frdm-imx93-kernel-6.12/) → `CONFIG_TINYDRM_PIXPAPER426M` |
 
-This guide will walk you through the process of building and installing the DRM driver for PIXPAPER-426M on FRDM-IMX93 using NXP vendor kernel 6.12.
+> Only need to show a picture? The [user-space guide](../FRDM-IMX93_PIXPAPAER-426-M.md) needs no kernel rebuild.
+> This guide replaces the board's `spidev` on LPSPI3, so the user-space demo stops working afterwards.
 
-### Prerequisites
+## 1. Wiring
 
-- FRDM-IMX93 development board
-- NXP vendor kernel 6.12 source code
-- Cross-compilation toolchain for ARM64 (if building on x86_64 host)
-- Git
+Same wiring as the user-space guide. Power the board off first; the panel is **3.3 V only**.
 
-### Step 1. Obtain NXP Vendor Kernel 6.12
+<img src="../images/wiring/frdm-imx93.svg" width="640" alt="FRDM-IMX93 wiring">
 
-Clone the NXP vendor kernel repository and checkout the 6.12 branch:
+| Panel | P11 pin | SoC signal | Device tree |
+|---|---|---|---|
+| 3V3 | 1 | 3.3 V | |
+| GND | 9 (any GND) | GND | |
+| MOSI | 19 | LPSPI3 SOUT | `&lpspi3` |
+| SCK | 23 | LPSPI3 SCK | `&lpspi3` |
+| CS# | 24 | GPIO2_IO08 | `cs-gpios = <&gpio2 8 ...>` |
+| DC# | 27 | GPIO2_IO00 | `dc-gpios = <&gpio2 0 ...>` |
+| RST# | 29 | GPIO2_IO05 | `reset-gpios = <&gpio2 5 ...>` |
+| BUSY | 37 | GPIO2_IO26 | `busy-gpios = <&gpio2 26 ...>` |
+
+## 2. Get the kernel and apply the driver
 
 ```bash
-git clone https://github.com/nxp-imx/linux-imx.git
+git clone https://github.com/open-ep/PIXPAPER-426-M.git
+git clone -b lf-6.12.y https://github.com/nxp-imx/linux-imx.git
 cd linux-imx
-git checkout lf-6.12.y
+P=../PIXPAPER-426-M/linux-kernel-drm/frdm-imx93-kernel-6.12
+git am $P/0001-drm-tiny-add-support-for-Pixpaper-426M-e-ink-panel.patch \
+       $P/0001-drm-tiny-pixpaper-426m-add-ARGB8888-format-support.patch \
+       $P/0001-drm-tiny-pixpaper-426m-fix-mirror-issue.patch
 ```
 
-### Step 2. Apply Driver Patches
+**Check:** `ls drivers/gpu/drm/tiny/pixpaper-426m.c` exists.
 
-Navigate to your kernel source directory and apply the patches in order:
+## 3. Device tree
+
+In `arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts`, `&lpspi3` and `pinctrl_lpspi3` **already exist**. Replace only the `spidev0` child with the panel. Do **not** add another `pinctrl_lpspi3` — dtc fails on the duplicate label.
+
+```diff
+ &lpspi3 {
+ 	fsl,spi-num-chipselects = <1>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_lpspi3>;
+ 	cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+ 	pinctrl-assert-gpios = <&pcal6408 0 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
+ 
+-	spidev0: spi@0 {
+-		reg = <0>;
+-		compatible = "lwn,bk4";
+-		spi-max-frequency = <1000000>;
+-	};
++	display@0 {
++		compatible = "mayqueen,pixpaper-426m";
++		reg = <0>;
++		spi-max-frequency = <1000000>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
++		dc-gpios = <&gpio2 0 GPIO_ACTIVE_HIGH>;
++		busy-gpios = <&gpio2 26 GPIO_ACTIVE_HIGH>;
++	};
+ };
+```
+
+The compatible must be exactly `"mayqueen,pixpaper-426m"` — that is the only string the driver matches.
+
+## 4. Configure and build
+
+Cross-compile on an x86-64 PC (`sudo apt install gcc-aarch64-linux-gnu`), or build on the board (drop the two `export` lines).
 
 ```bash
-cd linux-imx
-
-# Apply the main driver patch
-git am /path/to/frdm-imx93-kernel-6.12/0001-drm-tiny-add-support-for-Pixpaper-426M-e-ink-panel.patch
-
-# Apply ARGB8888 format support patch
-git am /path/to/frdm-imx93-kernel-6.12/0001-drm-tiny-pixpaper-426m-add-ARGB8888-format-support.patch
-
-# Apply mirror issue fix patch
-git am /path/to/frdm-imx93-kernel-6.12/0001-drm-tiny-pixpaper-426m-fix-mirror-issue.patch
-```
-
-**Note**: Replace `/path/to/` with the actual path to the `frdm-imx93-kernel-6.12` directory.
-
-### Step 3. Modify Device Tree
-
-Add the PIXPAPER-426M device node to your board's device tree file. For FRDM-IMX93, edit the device tree source file (e.g., `arch/arm64/boot/dts/freescale/imx93-lite93-evb.dts` or your custom board DTS).
-
-**Step 3.1: Add pinctrl configuration in the &iomuxc section**
-
-Add the SPI pin configuration in the `&iomuxc` section:
-
-```dts
-&iomuxc {
-    pinctrl_lpspi3: lpspi3grp {
-        fsl,pins = <
-            MX93_PAD_GPIO_IO08__GPIO2_IO08      0x3fe  /* CS */
-            MX93_PAD_GPIO_IO09__LPSPI3_SIN      0x3fe  /* MISO */
-            MX93_PAD_GPIO_IO10__LPSPI3_SOUT     0x3fe  /* MOSI */
-            MX93_PAD_GPIO_IO11__LPSPI3_SCK      0x3fe  /* SCK */
-        >;
-    };
-};
-```
-
-**Step 3.2: Configure the SPI bus and add PIXPAPER device node**
-
-Add or modify the `&lpspi3` section to include the PIXPAPER-426M device. This example shows a complete working configuration:
-
-```dts
-&lpspi3 {
-    fsl,spi-num-chipselects = <1>;
-    pinctrl-names = "default", "sleep";
-    pinctrl-0 = <&pinctrl_lpspi3>;
-    pinctrl-1 = <&pinctrl_lpspi3>;
-    cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
-    status = "okay";
-
-    display@0 {
-        compatible = "mayqueen,pixpaper";
-        reg = <0>;
-        spi-max-frequency = <1000000>;
-        reset-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
-        dc-gpios = <&gpio2 0 GPIO_ACTIVE_HIGH>;
-        busy-gpios = <&gpio2 26 GPIO_ACTIVE_HIGH>;
-    };
-};
-```
-
-**Important Notes about Compatible String**:
-
-The driver supports both `"mayqueen,pixpaper"` and `"mayqueen,pixpaper-426m"` as compatible strings. You can use either one:
-- `"mayqueen,pixpaper"` - Generic name (shown in example above)
-- `"mayqueen,pixpaper-426m"` - Specific model name
-
-**Important GPIO Pin Mapping**:
-
-According to the hardware connection diagram in the "Hardware Preparation" section:
-- **DC# PIN** (Data/Command) - Connected to Pin 11 → GPIO2_IO00 (`<&gpio2 0 GPIO_ACTIVE_HIGH>`)
-- **RST# PIN** (Reset) - Connected to Pin 29 → GPIO2_IO05 (`<&gpio2 5 GPIO_ACTIVE_HIGH>`)
-- **BUSY PIN** - Connected to Pin 37 → GPIO2_IO26 (`<&gpio2 26 GPIO_ACTIVE_HIGH>`)
-- **MOSI** - Connected to Pin 19 → LPSPI3_SOUT (GPIO_IO10)
-- **MISO** - Connected to Pin 21 → LPSPI3_SIN (GPIO_IO09)
-- **SCK** - Connected to Pin 23 → LPSPI3_SCK (GPIO_IO11)
-- **CS** - Connected to Pin 24 → GPIO2_IO08 (software controlled)
-- **GND** - Connected to Pin 39
-- **3.3V** - Connected to Pin 17
-
-**Note**: The above example uses LPSPI3 which is available on the 40-pin header. If your hardware uses different GPIO pins or a different SPI bus, adjust the configuration accordingly. You can verify the pin mapping by checking the FRDM-IMX93 board schematic and the i.MX93 reference manual.
-
-### Step 4. Update Kernel Configuration (defconfig)
-
-Enable the PIXPAPER-426M driver in your kernel configuration. You can either:
-
-**Option A: Manual configuration**
-```bash
-make menuconfig
-```
-Then navigate to:
-```
-Device Drivers --->
-  Graphics support --->
-    <M> DRM support for PIXPAPER426M display panels
-```
-
-**Option B: Modify defconfig directly**
-
-Edit your board's defconfig file (e.g., `arch/arm64/configs/imx_v8_defconfig`) and add:
-
-```
-CONFIG_TINYDRM_PIXPAPER426M=m
-```
-
-Or build as built-in (y instead of m):
-```
-CONFIG_TINYDRM_PIXPAPER426M=y
-```
-
-Save the configuration:
-```bash
-make savedefconfig
-cp defconfig arch/arm64/configs/imx_v8_defconfig
-```
-
-### Step 5. Build the Kernel
-
-Compile the kernel with your updated configuration:
-
-```bash
-# For cross-compilation (on x86_64 host):
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
-
 make imx_v8_defconfig
-make -j$(nproc) Image dtbs modules
-
-# For native compilation (on ARM64 board):
-make imx_v8_defconfig
+scripts/config --module TINYDRM_PIXPAPER426M        # or --enable for built-in
+make olddefconfig
 make -j$(nproc) Image dtbs modules
 ```
 
-### Step 6. Install Kernel and Modules
+**Check:** `grep PIXPAPER426M .config` prints `CONFIG_TINYDRM_PIXPAPER426M=m` (or `=y`).
 
-**If building on host machine**, copy the compiled files to your FRDM-IMX93:
+## 5. Install
 
-```bash
-# Copy kernel image
-sudo cp arch/arm64/boot/Image /path/to/boot/partition/
-
-# Copy device tree blob
-sudo cp arch/arm64/boot/dts/freescale/imx93-11x11-evk.dtb /path/to/boot/partition/
-
-# Install modules
-sudo make INSTALL_MOD_PATH=/path/to/rootfs modules_install
-```
-
-**If building natively on the board**:
+Copy these to the board's boot partition and rootfs. On the board itself, use `/boot` and `/`.
 
 ```bash
-sudo make modules_install
-sudo cp arch/arm64/boot/Image /boot/
-sudo cp arch/arm64/boot/dts/freescale/imx93-11x11-evk.dtb /boot/
+cp arch/arm64/boot/Image                               <boot>/
+cp arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dtb  <boot>/
+sudo make INSTALL_MOD_PATH=<rootfs> modules_install
 ```
 
-### Step 7. Reboot and Verify
+Reboot the board.
 
-Reboot your FRDM-IMX93 board:
+## 6. Verify and test
 
 ```bash
-sudo reboot
+dmesg | grep -i pixpaper        # driver probed, no errors
+ls /dev/dri/                    # a new cardN appears
+sudo modetest -M pixpaper -c    # note the connector id   (modetest: apt install libdrm-tests)
+sudo modetest -M pixpaper -s <connector_id>:800x480
 ```
 
-After reboot, verify the driver is loaded:
+**Expected:** `modetest` draws its test pattern on the panel. The panel flashes during the refresh.
 
-```bash
-# Check if the driver module is loaded
-lsmod | grep pixpaper
+<img width="600" alt="result" src="https://github.com/user-attachments/assets/b8106355-21f7-4af8-b416-e0ad78876bd1" />
 
-# Check DRM device
-ls -l /dev/dri/
+To send text from a PC browser, see the [Text Sender guide](epaper_text_sender_guide.md).
 
-# Check kernel messages
-dmesg | grep pixpaper
-```
+## Troubleshooting
 
-You should see the DRM device (e.g., `/dev/dri/card0` or `/dev/dri/card1`) and kernel messages indicating successful driver initialization.
-
-### Step 8. Test the Display
-
-You can test the display using standard DRM/KMS tools:
-
-```bash
-# Install modetest utility (if not already installed)
-sudo apt install libdrm-tests
-
-# List available connectors and modes
-modetest -M pixpaper
-
-# Display a test pattern
-modetest -M pixpaper -s <connector_id>:800x480
-```
-
-Expection results(Running Yocto): <br>
-
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/b8106355-21f7-4af8-b416-e0ad78876bd1" />
-
-
-
-
+| Symptom | Fix |
+|---|---|
+| dtc error `Duplicate label 'pinctrl_lpspi3'` | You added a second pinctrl group. Remove it; the one in the board file is correct. |
+| Nothing in `dmesg`, no new `/dev/dri/card` | The driver did not bind. Check the compatible string is `"mayqueen,pixpaper-426m"`, the new `.dtb` is the one being booted, and (for `=m`) that `modprobe pixpaper-426m` works. |
+| Driver probes, screen never changes | Check 3V3 and GND, then MOSI/SCK. Check DC = pin 27, RST = pin 29, BUSY = pin 37. |
+| `modetest: failed to open device` | Use `-M pixpaper`, the driver's DRM name, and run as root. |
 
 ## Contributors
 
