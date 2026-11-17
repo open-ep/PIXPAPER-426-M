@@ -44,6 +44,10 @@ BOARDS = {
                           23: ("SCK", "P9_2 RSPI0 RSPCK"), 24: ("CS#", "P9_3 RSPI0 SSL0"),
                           29: ("DC#", "P7_4  (gpio 60)"), 31: ("RST#", "P10_7 (gpio 87)"),
                           37: ("BUSY", "P11_3 (gpio 91)")})]),
+    "kakip-cm33": ("Kakip (RZ/V2H) Cortex-M33 — Zephyr, 40-pin header CN6", [
+        ("CN6", h2x(20), {1: ("3V3", "3.3 V"), 9: ("GND", ""), 19: ("MOSI", "P9_0 RSPI0 MOSI"),
+                          23: ("SCK", "P9_2 RSPI0 RSPCK"), 24: ("CS#", "P9_3"),
+                          29: ("DC#", "P7_4"), 31: ("RST#", "P10_7"), 37: ("BUSY", "P11_3")})]),
     "rpi-pico": ("Raspberry Pi Pico / Pico 2 (top view, USB up)", [
         ("Pico", pico(), {36: ("3V3", "3V3(OUT)"), 23: ("GND", ""), 25: ("MOSI", "GP19"),
                           24: ("SCK", "GP18"), 22: ("CS#", "GP17"), 21: ("DC#", "GP16"),
@@ -136,7 +140,7 @@ def svg_board(title, headers):
 if __name__ == "__main__":
     import sys
     here = Path(__file__).parent
-    only = sys.argv[1:] or ['d3g', 'frdm-imx93']   # boards used by this repo's guides
+    only = sys.argv[1:] or ['d3g', 'frdm-imx93', 'kakip-cm33']   # boards used by this repo's guides
     for key, (title, headers) in BOARDS.items():
         if only and key not in only:
             continue

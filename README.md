@@ -126,7 +126,7 @@ User-space drivers provide direct application control without kernel modificatio
 | **Telechips** | TOPST D3-G (Dolphin 3M) | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/D3-G_PIXPAPAER-426-M.md) | ✅ |
 
 -----------------
-### 🔧 MCU Platforms (ARM32)
+### 🔧 MCU / RTOS Platforms
 
 <table>
 <tr>
@@ -160,14 +160,25 @@ User-space drivers provide direct application control without kernel modificatio
 **Status:** ⏳ Coming soon
 
 </td>
+<td align="center" width="25%">
+
+<a href="https://www.renesas.com/" target="_blank">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Renesas_Electronics_logo.svg/330px-Renesas_Electronics_logo.svg.png" height="80">
+</a>
+
+#### Renesas
+**Status:** ✅ Ready
+
+</td>
 </tr>
 </table>
 
-| Manufacturer | Board / Core | Porting Guide | Status |
-|:------------|:------------|:--------------|:------:|
-| **Raspberry Pi** | Raspberry Pi Pico (M0+) | Coming soon | ⏳ |
-| **NXP** | FRDM-IMX93 (M33 Core) | Coming soon | ⏳ |
-| **ST** | STM32 | Coming soon | ⏳ |
+| Manufacturer | Board / Core | Runtime | Porting Guide | Status |
+|:------------|:------------|:--------|:--------------|:------:|
+| **Renesas** | Kakip (RZ/V2H, Cortex-M33) | Zephyr + LVGL | [📄 Guide](https://github.com/open-ep/PIXPAPER-426-M/blob/main/ZEPHYR-KAKIP-CM33_PIXPAPAER-426-M.md) · [💻 Samples](https://github.com/open-ep/zephyr-user-space-examples/tree/main/boards/kakip/samples/pixpaper_426m) | ✅ |
+| **Raspberry Pi** | Raspberry Pi Pico (M0+) | — | Coming soon | ⏳ |
+| **NXP** | FRDM-IMX93 (M33 Core) | — | Coming soon | ⏳ |
+| **ST** | STM32 | — | Coming soon | ⏳ |
 
 ---
 
